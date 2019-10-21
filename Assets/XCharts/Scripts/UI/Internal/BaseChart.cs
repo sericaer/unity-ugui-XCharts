@@ -418,7 +418,7 @@ namespace XCharts
             if (canvas == null) return;
 
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform,
-                Input.mousePosition, canvas.worldCamera, out local))
+                Input.mousePosition, null, out local))
             {
                 if (m_Tooltip.IsActive())
                 {
@@ -427,6 +427,7 @@ namespace XCharts
                 }
                 return;
             }
+
             if (local.x < 0 || local.x > chartWidth ||
                 local.y < 0 || local.y > chartHeight)
             {
