@@ -19,6 +19,10 @@ namespace XCharts
     public partial class BaseChart
     {
         /// <summary>
+        /// The theme info.
+        /// </summary>
+        public ThemeInfo themeInfo { get { return m_ThemeInfo; } }
+        /// <summary>
         /// The title setting of chart.
         /// 标题组件
         /// </summary>
@@ -414,6 +418,17 @@ namespace XCharts
             m_ThemeInfo.theme = theme;
             OnThemeChanged();
             RefreshChart();
+        }
+  
+        /// <summary>
+        /// Update chart theme info.
+        /// 切换图表主题。
+        /// </summary>
+        /// <param name="themeInfo">themeInfo</param>
+        public void UpdateThemeInfo(ThemeInfo themeInfo)
+        {
+            m_ThemeInfo = themeInfo;
+            UpdateTheme(m_ThemeInfo.theme);
         }
 
         /// <summary>
