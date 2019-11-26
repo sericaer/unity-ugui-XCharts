@@ -146,6 +146,7 @@ namespace XCharts
             else
             {
                 var isCartesian = IsValue();
+                int dataCount = m_Series.list.Count > 0 ? m_Series.list[0].GetDataList(dataZoom).Count : 0;
                 for (int i = 0; i < m_XAxises.Count; i++)
                 {
                     var xAxis = m_XAxises[i];
@@ -189,7 +190,7 @@ namespace XCharts
 
                         for (int j = 0; j < xAxis.GetDataNumber(m_DataZoom); j++)
                         {
-                            float splitWid = xAxis.GetDataWidth(coordinateWidth, m_DataZoom);
+                            float splitWid = xAxis.GetDataWidth(coordinateWidth, dataCount, m_DataZoom);
                             float pX = coordinateX + j * splitWid;
                             if ((xAxis.boundaryGap && (local.x > pX && local.x <= pX + splitWid)) ||
                                 (!xAxis.boundaryGap && (local.x > pX - splitWid / 2 && local.x <= pX + splitWid / 2)))
@@ -201,7 +202,7 @@ namespace XCharts
                         }
                         for (int j = 0; j < yAxis.GetDataNumber(m_DataZoom); j++)
                         {
-                            float splitWid = yAxis.GetDataWidth(coordinateHeight, m_DataZoom);
+                            float splitWid = yAxis.GetDataWidth(coordinateHeight, dataCount, m_DataZoom);
                             float pY = coordinateY + j * splitWid;
                             if ((yAxis.boundaryGap && (local.y > pY && local.y <= pY + splitWid)) ||
                                 (!yAxis.boundaryGap && (local.y > pY - splitWid / 2 && local.y <= pY + splitWid / 2)))
@@ -218,7 +219,7 @@ namespace XCharts
                         m_Tooltip.yValues[i] = value;
                         for (int j = 0; j < xAxis.GetDataNumber(m_DataZoom); j++)
                         {
-                            float splitWid = xAxis.GetDataWidth(coordinateWidth, m_DataZoom);
+                            float splitWid = xAxis.GetDataWidth(coordinateWidth, dataCount, m_DataZoom);
                             float pX = coordinateX + j * splitWid;
                             if ((xAxis.boundaryGap && (local.x > pX && local.x <= pX + splitWid)) ||
                                 (!xAxis.boundaryGap && (local.x > pX - splitWid / 2 && local.x <= pX + splitWid / 2)))
@@ -236,7 +237,7 @@ namespace XCharts
                         m_Tooltip.xValues[i] = value;
                         for (int j = 0; j < yAxis.GetDataNumber(m_DataZoom); j++)
                         {
-                            float splitWid = yAxis.GetDataWidth(coordinateHeight, m_DataZoom);
+                            float splitWid = yAxis.GetDataWidth(coordinateHeight, dataCount, m_DataZoom);
                             float pY = coordinateY + j * splitWid;
                             if ((yAxis.boundaryGap && (local.y > pY && local.y <= pY + splitWid)) ||
                                 (!yAxis.boundaryGap && (local.y > pY - splitWid / 2 && local.y <= pY + splitWid / 2)))
@@ -319,8 +320,8 @@ namespace XCharts
                             if (serieData != null && serieData.highlighted)
                             {
                                 sb.Append(key).Append(!string.IsNullOrEmpty(key) ? " : " : "");
-                                sb.Append("[").Append(ChartCached.FloatToStr(xValue)).Append(",")
-                                    .Append(ChartCached.FloatToStr(yValue)).Append("]\n");
+                                sb.Append("[").Append(ChartCached.FloatToStr(xValue, 0, m_Tooltip.forceENotation)).Append(",")
+                                    .Append(ChartCached.FloatToStr(yValue, 0, m_Tooltip.forceENotation)).Append("]\n");
                             }
                         }
                         else
@@ -328,7 +329,7 @@ namespace XCharts
                             sb.Append("\n")
                                 .Append("<color=#").Append(m_ThemeInfo.GetColorStr(i)).Append(">● </color>")
                                 .Append(key).Append(!string.IsNullOrEmpty(key) ? " : " : "")
-                                .Append(ChartCached.FloatToStr(yValue));
+                                .Append(ChartCached.FloatToStr(yValue, 0, m_Tooltip.forceENotation));
                         }
                     }
                 }
@@ -766,8 +767,8 @@ namespace XCharts
         private void UpdateAxisMinMaxValue(int axisIndex, Axis axis, bool updateChart = true)
         {
             if (axis.IsCategory() || !axis.show) return;
-            int tempMinValue = 0;
-            int tempMaxValue = 0;
+            float tempMinValue = 0;
+            float tempMaxValue = 0;
 
             if (IsValue())
             {
@@ -788,7 +789,6 @@ namespace XCharts
             if (tempMinValue != axis.minValue || tempMaxValue != axis.maxValue)
             {
                 m_CheckMinMaxValue = true;
-
                 axis.minValue = tempMinValue;
                 axis.maxValue = tempMaxValue;
                 axis.zeroXOffset = 0;
@@ -930,7 +930,7 @@ namespace XCharts
 
         private void DrawXAxisTickAndSplit(VertexHelper vh, int xAxisIndex, XAxis xAxis)
         {
-            if (xAxis.show)
+            if (xAxis.NeedShowSplit())
             {
                 var size = xAxis.GetScaleNumber(coordinateWidth, m_DataZoom);
                 var totalWidth = coordinateX;
@@ -1039,8 +1039,8 @@ namespace XCharts
                 float scaleWid = coordinateWidth / (showData.Count - 1);
                 Vector3 lp = Vector3.zero;
                 Vector3 np = Vector3.zero;
-                int minValue = 0;
-                int maxValue = 0;
+                float minValue = 0;
+                float maxValue = 0;
                 m_Series.GetYMinMaxValue(null, 0, IsValue(), out minValue, out maxValue);
                 axis.AdjustMinMaxValue(ref minValue, ref maxValue);
 
@@ -1116,13 +1116,13 @@ namespace XCharts
         {
             if (!m_Tooltip.show || !m_Tooltip.IsSelected()) return;
             if (m_Tooltip.type == Tooltip.Type.None) return;
-
+            int dataCount = m_Series.list.Count > 0 ? m_Series.list[0].GetDataList(dataZoom).Count : 0;
             for (int i = 0; i < m_XAxises.Count; i++)
             {
                 var xAxis = m_XAxises[i];
                 var yAxis = m_YAxises[i];
                 if (!xAxis.show) continue;
-                float splitWidth = xAxis.GetDataWidth(coordinateWidth, m_DataZoom);
+                float splitWidth = xAxis.GetDataWidth(coordinateWidth, dataCount, m_DataZoom);
                 switch (m_Tooltip.type)
                 {
                     case Tooltip.Type.Corss:
@@ -1160,13 +1160,13 @@ namespace XCharts
         {
             if (!m_Tooltip.show || !m_Tooltip.IsSelected()) return;
             if (m_Tooltip.type == Tooltip.Type.None) return;
-
+            int dataCount = m_Series.list.Count > 0 ? m_Series.list[0].GetDataList(dataZoom).Count : 0;
             for (int i = 0; i < m_YAxises.Count; i++)
             {
                 var yAxis = m_YAxises[i];
                 var xAxis = m_XAxises[i];
                 if (!yAxis.show) continue;
-                float splitWidth = yAxis.GetDataWidth(coordinateHeight, m_DataZoom);
+                float splitWidth = yAxis.GetDataWidth(coordinateHeight, dataCount, m_DataZoom);
                 switch (m_Tooltip.type)
                 {
                     case Tooltip.Type.Corss:

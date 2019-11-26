@@ -1,3 +1,10 @@
+/******************************************/
+/*                                        */
+/*     Copyright (c) 2018 monitor1394     */
+/*     https://github.com/monitor1394     */
+/*                                        */
+/******************************************/
+
 using System.Text;
 
 using System.Collections;
@@ -17,8 +24,8 @@ namespace XCharts
 
     public class XChartsMgr : MonoBehaviour
     {
-        public const string version = "1.0.0";
-        public const int date = 20191023;
+        public const string version = "1.0.1";
+        public const int date = 20191026;
 
         [SerializeField] private string m_NowVersion;
         [SerializeField] private string m_NewVersion;
@@ -36,7 +43,10 @@ namespace XCharts
                     {
                         go = new GameObject();
                         go.name = "_xcharts_";
-                        DontDestroyOnLoad(go);
+                        if (Application.isPlaying)
+                        {
+                            DontDestroyOnLoad(go);
+                        }
                         m_XCharts = go.AddComponent<XChartsMgr>();
                     }
                     else
